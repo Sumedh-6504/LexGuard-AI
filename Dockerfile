@@ -1,8 +1,6 @@
 # ============================================================================
 # LexGuard – Single-container Dockerfile (Frontend + Backend)
-# Runs Next.js on :3000 and FastAPI on :8000 behind supervisord.
-# Cloud Run sends traffic to $PORT (default 3000 = the Next.js server).
-# Next.js API routes proxy /api/* → http://localhost:8000 (internal).
+# Runs Next.js on $PORT and FastAPI on :8000 via a simple shell script.
 # ============================================================================
 
 # ── Stage 1: Install Node dependencies ──────────────────────────────────────
@@ -16,7 +14,6 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# The frontend proxies to the backend at localhost:8000 inside the container
 ENV BACKEND_URL=http://localhost:8000
 RUN npm run build
 
@@ -24,9 +21,9 @@ RUN npm run build
 FROM python:3.11-slim AS runner
 WORKDIR /app
 
-# Install Node.js 22 and supervisor into the Python image
+# Install Node.js 22 (no supervisor needed)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl supervisor && \
+    apt-get install -y --no-install-recommends curl && \
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -34,7 +31,6 @@ RUN apt-get update && \
 # ── Python backend ──────────────────────────────────────────────────────────
 COPY backend/requirements.txt /app/backend/requirements.txt
 RUN pip install --no-cache-dir -r /app/backend/requirements.txt
-
 COPY backend/ /app/backend/
 
 # ── Next.js frontend (standalone output) ────────────────────────────────────
@@ -42,12 +38,12 @@ COPY --from=builder /app/public /app/frontend/public
 COPY --from=builder /app/.next/standalone /app/frontend/
 COPY --from=builder /app/.next/static /app/frontend/.next/static
 
-# ── Supervisord config (runs both processes) ────────────────────────────────
-RUN mkdir -p /var/log/supervisor
-COPY supervisord.conf /etc/supervisor/conf.d/lexguard.conf
+# ── Startup script ──────────────────────────────────────────────────────────
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-# Cloud Run injects $PORT; Next.js listens on it, backend always on 8000
+# Cloud Run injects $PORT; defaults to 3000
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["supervisord", "-c", "/etc/supervisor/conf.d/lexguard.conf"]
+CMD ["/app/start.sh"]
