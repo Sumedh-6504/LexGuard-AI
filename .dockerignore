@@ -1,0 +1,30 @@
+# Dependencies & build cache
+node_modules
+.next
+__pycache__
+*.pyc
+.venv
+
+# Git & IDE
+.git
+.gitignore
+.vscode
+*.swp
+
+# Environment files (secrets set via Cloud Run env vars)
+.env
+.env.local
+backend/.env
+
+# Docker (prevent recursive context)
+Dockerfile
+backend/Dockerfile
+.dockerignore
+
+# Docs & non-essential files
+README.md
+ARCHITECTURE.md
+CLAUDE.md
+LICENSE
+*.md
+render.yaml
