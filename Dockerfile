@@ -24,7 +24,7 @@ RUN npm run build
 FROM python:3.11-slim AS runner
 WORKDIR /app
 
-# Install Node.js 20 into the Python image
+# Install Node.js 22 and supervisor into the Python image
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl supervisor && \
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
@@ -44,35 +44,7 @@ COPY --from=builder /app/.next/static /app/frontend/.next/static
 
 # ── Supervisord config (runs both processes) ────────────────────────────────
 RUN mkdir -p /var/log/supervisor
-COPY <<'EOF' /etc/supervisor/conf.d/lexguard.conf
-[supervisord]
-nodaemon=true
-logfile=/dev/stdout
-logfile_maxbytes=0
-loglevel=info
-
-[program:backend]
-command=uvicorn main:app --host 0.0.0.0 --port 8000
-directory=/app/backend
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-environment=USE_VERTEX_AI="%(ENV_USE_VERTEX_AI)s",GOOGLE_CLOUD_PROJECT="%(ENV_GOOGLE_CLOUD_PROJECT)s",GOOGLE_CLOUD_LOCATION="%(ENV_GOOGLE_CLOUD_LOCATION)s"
-
-[program:frontend]
-command=node server.js
-directory=/app/frontend
-autostart=true
-autorestart=true
-stdout_logfile=/dev/stdout
-stdout_logfile_maxbytes=0
-stderr_logfile=/dev/stderr
-stderr_logfile_maxbytes=0
-environment=NODE_ENV="production",PORT="%(ENV_PORT)s",HOSTNAME="0.0.0.0",BACKEND_URL="http://localhost:8000"
-EOF
+COPY supervisord.conf /etc/supervisor/conf.d/lexguard.conf
 
 # Cloud Run injects $PORT; Next.js listens on it, backend always on 8000
 ENV PORT=3000
