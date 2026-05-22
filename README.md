@@ -2,17 +2,30 @@
 
 **Adversarial Multi-Agent AI for Contract Intelligence**
 
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini_2.5-Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Cloud_Run-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-Proprietary-1a1a1a?style=for-the-badge)
+
 LexGuard is an AI-powered contract analysis platform that uses three adversarial Gemini 2.5 Flash agents working in sequence to detect exploitative clauses, verify findings, and simulate worst-case consequences. Unlike single-prompt summarizers, LexGuard's adversarial design — two agents arguing about the same document — catches edge cases a single pass would miss.
 
-<!-- TODO: Replace with actual screenshot -->
-<!-- ![LexGuard Dashboard](docs/screenshots/dashboard.png) -->
+> **Screenshot: Hero / Landing Page**
+>
+> ![Landing Page](docs/screenshots/landing.png)
 
 ---
 
 ## Table of Contents
 
 - [Features](#features)
-- [Architecture](#architecture)
+- [Screenshots](#screenshots)
+- [System Architecture](#system-architecture)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
@@ -20,14 +33,12 @@ LexGuard is an AI-powered contract analysis platform that uses three adversarial
 - [Database Schema](#database-schema)
 - [API Reference](#api-reference)
 - [Deployment](#deployment)
+- [Design System](#design-system)
 - [License](#license)
 
 ---
 
 ## Features
-
-<!-- TODO: Replace with actual screenshot of the upload + analysis flow -->
-<!-- ![Analysis Flow](docs/screenshots/analysis-flow.png) -->
 
 - **3-Agent Adversarial Pipeline** — Detective hunts risky clauses, Judge verifies and scores them, Simulator generates worst-case narratives
 - **Multi-Format Upload** — Drag-and-drop PDF, DOCX, or paste raw text (up to 20K characters)
@@ -43,51 +54,93 @@ LexGuard is an AI-powered contract analysis platform that uses three adversarial
 
 ---
 
-## Architecture
+## Screenshots
 
+> **Dashboard — Recent analyses, risk overview, quick stats**
+>
+> ![Dashboard](docs/screenshots/dashboard.png)
+
+> **Upload — Drag-and-drop PDF/DOCX or paste contract text**
+>
+> ![Upload](docs/screenshots/upload.png)
+
+> **Analysis Detail — Two-pane risk workbench with clause highlighting**
+>
+> ![Analysis Detail](docs/screenshots/analysis-detail.png)
+
+> **Contracts — Grid/list view, search, filter by risk level**
+>
+> ![Contracts](docs/screenshots/contracts.png)
+
+> **Worst-Case Simulator — AI-generated consequence narratives**
+>
+> ![Simulator](docs/screenshots/simulator.png)
+
+> **Profile — Avatar, plan, auth provider, password management**
+>
+> ![Profile](docs/screenshots/profile.png)
+
+> **Plans & Pricing — Free vs Pro tier comparison**
+>
+> ![Plans](docs/screenshots/plans.png)
+
+> **Sign In — OAuth (Google, GitHub) + credentials**
+>
+> ![Sign In](docs/screenshots/signin.png)
+
+---
+
+## System Architecture
+
+> **System Design Diagram**
+>
+> Generate this diagram using [**Eraser.io**](https://eraser.io) (recommended — supports Mermaid, has AI diagram generation) or paste the Mermaid code below into [mermaid.live](https://mermaid.live) to export as PNG/SVG.
+>
+> ![System Architecture](docs/diagrams/system-architecture.png)
+
+<details>
+<summary><b>Mermaid source (click to expand)</b></summary>
+
+```mermaid
+flowchart TD
+    A["User Browser"] -->|"Upload PDF/DOCX or paste text"| FE
+
+    subgraph FE["Next.js 16 Frontend"]
+        B["Upload Screen"]
+        C["API Proxy: /api/parse"]
+        D["API Proxy: /api/analyze"]
+        E["API Proxy: /api/simulate"]
+        R["Dashboard + Analysis Detail"]
+        AUTH["NextAuth v5<br/>Google · GitHub · Credentials"]
+    end
+
+    subgraph BE["Python FastAPI Backend"]
+        P["POST /parse<br/>pdfplumber · python-docx"]
+        AN["POST /analyze"]
+        SIM["POST /simulate"]
+        DET["Agent 1: Detective<br/>Adversarial Clause Hunter"]
+        JUD["Agent 2: Judge<br/>Verifier + Risk Scorer"]
+        SCN["Agent 3: Simulator<br/>Consequence Narrator"]
+    end
+
+    B -->|"file upload"| C -->|"FormData proxy"| P
+    P -->|"raw text"| B
+    B -->|"contract text"| D -->|"contract_text"| AN
+    AN --> DET -->|"raw findings JSON"| JUD
+    JUD -->|"ContractAnalysis JSON"| R
+    R -->|"critical findings"| E -->|"findings + summary"| SIM
+    SIM --> SCN -->|"SimulationResult JSON"| R
+
+    DET & JUD & SCN -->|"gemini-2.5-flash"| GEMINI[("Google Gemini API")]
+    FE -->|"Auth + Data"| SUPA[("Supabase PostgreSQL")]
+    AUTH -->|"JWT sessions"| FE
 ```
-                          +-------------------+
-                          |   User Browser    |
-                          |  Upload PDF/DOCX  |
-                          +--------+----------+
-                                   |
-                    +--------------v--------------+
-                    |     Next.js 16 Frontend      |
-                    |  (App Router + API Proxies)   |
-                    |                               |
-                    |  /api/parse    -> proxy       |
-                    |  /api/analyze  -> proxy       |
-                    |  /api/simulate -> proxy       |
-                    +--------------+---------------+
-                                   |
-                    +--------------v---------------+
-                    |    Python FastAPI Backend     |
-                    |                               |
-                    |  +-------------------------+  |
-                    |  | Agent 1: Detective      |  |
-                    |  | Adversarial clause hunt  |  |
-                    |  +-----------+-------------+  |
-                    |              | raw findings    |
-                    |  +-----------v-------------+  |
-                    |  | Agent 2: Judge          |  |
-                    |  | Verify, score, enrich   |  |
-                    |  +-----------+-------------+  |
-                    |              | ContractAnalysis|
-                    |  +-----------v-------------+  |
-                    |  | Agent 3: Simulator      |  |
-                    |  | Worst-case narratives   |  |
-                    |  +-------------------------+  |
-                    +------+--------------+--------+
-                           |              |
-                    +------v------+ +-----v------+
-                    | Gemini 2.5  | |  Supabase  |
-                    | Flash API   | | PostgreSQL |
-                    +-------------+ +------------+
-```
+
+</details>
 
 ### Agent Pipeline
 
-| Agent | File | Role | Temperature | Output |
+| Agent | File | Role | Temp | Output |
 |---|---|---|---|---|
 | **Detective** | `backend/detective.py` | Scans for every clause that could harm the signer. Classifies into 13 risk categories. | 0.1 | Raw `Finding[]` |
 | **Judge** | `backend/judge.py` | Independently verifies each finding against the source. Confirms, upgrades, downgrades, or dismisses. Computes risk score. | 0.1 | Full `ContractAnalysis` |
@@ -96,7 +149,7 @@ LexGuard is an AI-powered contract analysis platform that uses three adversarial
 ### Risk Scoring Formula
 
 ```
-overall_risk_score = min(CRITICAL × 25 + HIGH × 10 + MEDIUM × 5 + LOW × 1, 100)
+overall_risk_score = min(CRITICAL x 25 + HIGH x 10 + MEDIUM x 5 + LOW x 1, 100)
 ```
 
 | Score | Level |
@@ -179,9 +232,6 @@ npm run dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser.
-
-<!-- TODO: Replace with actual screenshot of the landing page -->
-<!-- ![Landing Page](docs/screenshots/landing.png) -->
 
 ---
 
@@ -285,61 +335,83 @@ lexguard/
 
 ## Database Schema
 
-LexGuard uses **Supabase (PostgreSQL)** with the following tables:
+> **Entity-Relationship Diagram**
+>
+> Generate this ER diagram using [**Eraser.io**](https://eraser.io) (best for clean technical diagrams — paste the schema description and let its AI generate the ER diagram) or [**dbdiagram.io**](https://dbdiagram.io) (free, paste DBML syntax). For a quick AI-generated option, use [**ChatGPT**](https://chatgpt.com) or [**Claude**](https://claude.ai) with the prompt: *"Generate a clean ER diagram for these tables: users, documents, analyses, findings, simulations"* and export the artifact.
+>
+> ![Database ER Diagram](docs/diagrams/database-er.png)
 
+<details>
+<summary><b>DBML schema for dbdiagram.io (click to expand)</b></summary>
+
+```dbml
+Table users {
+  id uuid [pk]
+  email text [unique, not null]
+  name text
+  avatar_url text
+  auth_provider text [note: 'google | github | credentials']
+  plan text [default: 'free', note: 'free | pro']
+  password_hash text
+  created_at timestamptz [default: `now()`]
+}
+
+Table documents {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [ref: > users.id]
+  file_name text
+  detected_type text
+  contract_text text
+  char_count int
+  created_at timestamptz [default: `now()`]
+}
+
+Table analyses {
+  id uuid [pk, default: `gen_random_uuid()`]
+  document_id uuid [ref: > documents.id]
+  user_id uuid [ref: > users.id]
+  risk_score int
+  risk_level text [note: 'SAFE | LOW | MEDIUM | HIGH | CRITICAL']
+  judge_confidence float
+  contract_summary text
+  total_findings int
+  critical_count int
+  high_count int
+  medium_count int
+  low_count int
+  false_positives_removed int
+  created_at timestamptz [default: `now()`]
+}
+
+Table findings {
+  id uuid [pk, default: `gen_random_uuid()`]
+  analysis_id uuid [ref: > analyses.id]
+  finding_ref text
+  title text
+  category text
+  severity text [note: 'CRITICAL | HIGH | MEDIUM | LOW']
+  clause_text text
+  clause_location text
+  detective_finding text
+  judge_verdict text
+  plain_english_impact text
+  recommendation text [note: 'ACCEPT | NEGOTIATE | REJECT']
+  negotiation_tip text
+  verified boolean
+  false_positive boolean
+  sort_order int
+}
+
+Table simulations {
+  id uuid [pk, default: `gen_random_uuid()`]
+  analysis_id uuid [ref: > analyses.id]
+  worst_case_story text
+  financial_risk text
+  created_at timestamptz [default: `now()`]
+}
 ```
-users
-├── id (uuid, PK)              — deterministic UUID from email
-├── email (text, unique)
-├── name (text)
-├── avatar_url (text)
-├── auth_provider (text)        — "google" | "github" | "credentials"
-├── plan (text)                 — "free" | "pro"
-└── created_at (timestamptz)
 
-documents
-├── id (uuid, PK)
-├── user_id (uuid, FK → users)
-├── file_name (text)
-├── detected_type (text)
-├── contract_text (text)
-└── char_count (int)
-
-analyses
-├── id (uuid, PK)
-├── document_id (uuid, FK → documents)
-├── user_id (uuid, FK → users)
-├── risk_score (int)
-├── risk_level (text)
-├── judge_confidence (float)
-├── contract_summary (text)
-├── total_findings (int)
-├── critical_count / high_count / medium_count / low_count (int)
-├── false_positives_removed (int)
-└── created_at (timestamptz)
-
-findings
-├── id (uuid, PK)
-├── analysis_id (uuid, FK → analyses)
-├── finding_ref (text)
-├── title (text)
-├── category (text)
-├── severity (text)
-├── clause_text / clause_location (text)
-├── detective_finding / judge_verdict (text)
-├── plain_english_impact (text)
-├── recommendation (text)
-├── negotiation_tip (text)
-├── verified / false_positive (boolean)
-└── sort_order (int)
-
-simulations
-├── id (uuid, PK)
-├── analysis_id (uuid, FK → analyses)
-├── worst_case_story (text)
-├── financial_risk (text)
-└── created_at (timestamptz)
-```
+</details>
 
 ---
 
@@ -423,9 +495,6 @@ npm i -g vercel && vercel --prod
 # Set env: GEMINI_API_KEY=your_key
 ```
 
-<!-- TODO: Replace with actual screenshot of the deployed app -->
-<!-- ![Deployed App](docs/screenshots/deployed.png) -->
-
 ---
 
 ## Design System
@@ -437,17 +506,18 @@ LexGuard uses a **Retro Neo-Brutalist** visual language:
 - **Typography:** Bold uppercase headings, monospace accents
 - **Color Palette:**
 
-| Color | Hex | Usage |
-|---|---|---|
-| Sand | `#f5f4f0` | Page backgrounds |
-| Ink | `#1a1a1a` | Text, borders, shadows |
-| Lilac | `#d2c4fb` | Active states, primary accent |
-| Yellow | `#ffe082` | Pro tier, highlights, warnings |
-| Coral | `#ff8a80` | Danger, critical severity |
-| Mint | `#a7ffeb` | Success, safe severity |
+| Swatch | Color | Hex | Usage |
+|---|---|---|---|
+| ![#f5f4f0](https://via.placeholder.com/12/f5f4f0/f5f4f0.png) | Sand | `#f5f4f0` | Page backgrounds |
+| ![#1a1a1a](https://via.placeholder.com/12/1a1a1a/1a1a1a.png) | Ink | `#1a1a1a` | Text, borders, shadows |
+| ![#d2c4fb](https://via.placeholder.com/12/d2c4fb/d2c4fb.png) | Lilac | `#d2c4fb` | Active states, primary accent |
+| ![#ffe082](https://via.placeholder.com/12/ffe082/ffe082.png) | Yellow | `#ffe082` | Pro tier, highlights, warnings |
+| ![#ff8a80](https://via.placeholder.com/12/ff8a80/ff8a80.png) | Coral | `#ff8a80` | Danger, critical severity |
+| ![#a7ffeb](https://via.placeholder.com/12/a7ffeb/a7ffeb.png) | Mint | `#a7ffeb` | Success, safe severity |
 
-<!-- TODO: Replace with actual screenshot of the design system in action -->
-<!-- ![Design System](docs/screenshots/design-system.png) -->
+> **Design System in Action**
+>
+> ![Design System](docs/screenshots/design-system.png)
 
 ---
 
