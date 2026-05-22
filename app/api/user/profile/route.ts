@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createServerClient } from "@/lib/supabase/server";
 
+const PROFILE_FIELDS = "id, email, name, avatar_url, auth_provider, plan, analyses_this_month, created_at";
+
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
@@ -12,11 +14,26 @@ export async function GET() {
     const supabase = createServerClient();
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, email, name, avatar_url, auth_provider, plan, analyses_this_month, created_at")
+      .select(PROFILE_FIELDS)
       .eq("id", session.user.id)
       .single();
 
     if (error || !user) {
+      const { data: created } = await supabase
+        .from("users")
+        .upsert(
+          {
+            id: session.user.id,
+            email: session.user.email ?? "unknown",
+            name: session.user.name ?? null,
+            avatar_url: session.user.image ?? null,
+          },
+          { onConflict: "id" }
+        )
+        .select(PROFILE_FIELDS)
+        .single();
+
+      if (created) return NextResponse.json(created);
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
@@ -35,16 +52,33 @@ export async function PATCH(req: Request) {
 
   try {
     const body = await req.json();
-    const { name } = body;
+    const { name, avatar_url } = body;
 
-    if (typeof name !== "string" || name.trim().length === 0) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim().length === 0) {
+        return NextResponse.json({ error: "Name is required" }, { status: 400 });
+      }
+      updates.name = name.trim();
+    }
+
+    if (avatar_url !== undefined) {
+      if (avatar_url !== null && typeof avatar_url === "string" && avatar_url.length > 500000) {
+        return NextResponse.json({ error: "Image too large (max 500KB)" }, { status: 400 });
+      }
+      updates.avatar_url = avatar_url;
+    }
+
+    if (Object.keys(updates).length === 1) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 
     const supabase = createServerClient();
     const { error } = await supabase
       .from("users")
-      .update({ name: name.trim(), updated_at: new Date().toISOString() })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update(updates as any)
       .eq("id", session.user.id);
 
     if (error) {

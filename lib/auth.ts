@@ -48,6 +48,7 @@ function emailToUUID(email: string): string {
 }
 
 const authConfig: NextAuthConfig = {
+  trustHost: true,
   /**
    * Providers — evaluated in declaration order.
    * Google / GitHub use environment variables automatically:
@@ -132,9 +133,34 @@ const authConfig: NextAuthConfig = {
    * deterministic UUID based on email for consistent FK references.
    */
   callbacks: {
+    async signIn({ user, account }) {
+      if (user?.email) {
+        const userId = emailToUUID(user.email);
+        try {
+          const supabase = createServerClient();
+          const { error } = await supabase.from("users").upsert(
+            {
+              id: userId,
+              email: user.email.toLowerCase(),
+              name: user.name ?? null,
+              avatar_url: user.image ?? null,
+              auth_provider: account?.provider ?? "credentials",
+              plan: "free",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any,
+            { onConflict: "id" }
+          );
+          if (error) {
+            console.error("Supabase user sync error on sign-in:", error);
+          }
+        } catch (err) {
+          console.error("Supabase user sync failed on sign-in:", err);
+        }
+      }
+      return true;
+    },
     async jwt({ token, user, account }) {
       if (user?.email) {
-        // Always use deterministic UUID so the same email → same user ID
         token.id = emailToUUID(user.email);
         token.provider = account?.provider ?? "credentials";
       }

@@ -26,7 +26,7 @@ export default function SettingsPage() {
   useEffect(() => {
     const saved = localStorage.getItem("lexguard-theme");
     if (saved === "dark") {
-      setTheme("dark");
+      Promise.resolve().then(() => setTheme("dark"));
       document.documentElement.classList.add("dark");
     }
   }, []);

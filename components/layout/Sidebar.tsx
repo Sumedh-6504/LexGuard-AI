@@ -28,9 +28,9 @@ export default function Sidebar({ user }: SidebarProps) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const navItems = [
-    { href: ROUTES.DASHBOARD, label: "Dashboard", icon: Home },
-    { href: ROUTES.UPLOAD,    label: "Upload",    icon: Upload },
-    { href: ROUTES.DASHBOARD + "#contracts", label: "Contracts", icon: FileText },
+    { href: ROUTES.DASHBOARD,  label: "Dashboard", icon: Home },
+    { href: ROUTES.UPLOAD,     label: "Upload",    icon: Upload },
+    { href: ROUTES.CONTRACTS,  label: "Contracts",  icon: FileText },
   ];
 
   const initials = user.name
@@ -49,9 +49,7 @@ export default function Sidebar({ user }: SidebarProps) {
       {/* ── Nav Links ── */}
       <nav className="flex-1 px-3 py-5 space-y-1">
         {navItems.map((item) => {
-          const isActive = item.href.includes("#")
-            ? pathname === ROUTES.DASHBOARD && typeof window !== "undefined" && window.location.hash === "#contracts"
-            : pathname === item.href;
+          const isActive = pathname === item.href;
 
           return (
             <Link

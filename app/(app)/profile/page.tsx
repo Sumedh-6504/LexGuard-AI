@@ -1,8 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import {
   User,
   Mail,
@@ -14,8 +15,10 @@ import {
   Check,
   AlertCircle,
   Crown,
+  Camera,
+  ArrowRight,
 } from "lucide-react";
-import { FREE_TIER_MONTHLY_LIMIT } from "@/lib/constants";
+import { FREE_TIER_MONTHLY_LIMIT, ROUTES } from "@/lib/constants";
 
 interface UserProfile {
   id: string;
@@ -28,6 +31,34 @@ interface UserProfile {
   created_at: string;
 }
 
+function resizeImage(file: File, maxSize: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let w = img.width;
+        let h = img.height;
+        if (w > maxSize || h > maxSize) {
+          if (w > h) { h = (h / w) * maxSize; w = maxSize; }
+          else { w = (w / h) * maxSize; h = maxSize; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { reject(new Error("Canvas not supported")); return; }
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ProfilePage() {
   const { data: session } = useSession();
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -36,6 +67,9 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -61,6 +95,47 @@ export default function ProfilePage() {
     }
     if (session?.user) fetchProfile();
   }, [session]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setSaveError("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveError("Image must be under 5MB");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setSaveError(null);
+    try {
+      const dataUrl = await resizeImage(file, 256);
+      setAvatarPreview(dataUrl);
+
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ avatar_url: dataUrl }),
+      });
+
+      if (res.ok) {
+        setUser((prev) => prev ? { ...prev, avatar_url: dataUrl } : null);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        const data = await res.json();
+        setSaveError(data.error || "Failed to upload avatar");
+        setAvatarPreview(null);
+      }
+    } catch {
+      setSaveError("Failed to process image");
+      setAvatarPreview(null);
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!name.trim()) return;
@@ -139,14 +214,13 @@ export default function ProfilePage() {
     );
   }
 
+  const displayAvatar = avatarPreview || user?.avatar_url || session?.user?.image;
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "U";
-
   const memberSince = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
     : "—";
-
   const isCredentials = user?.auth_provider === "credentials";
 
   return (
@@ -172,17 +246,37 @@ export default function ProfilePage() {
         <div className="p-6 space-y-6">
           {/* Avatar + Name row */}
           <div className="flex items-center gap-5">
-            {session?.user?.image ? (
-              <img
-                src={session.user.image}
-                alt={user?.name || "User"}
-                className="w-16 h-16 border-3 border-[#1a1a1a] neo-shadow-sm flex-shrink-0"
+            <div className="relative group flex-shrink-0">
+              {displayAvatar ? (
+                <img
+                  src={displayAvatar}
+                  alt={user?.name || "User"}
+                  className="w-20 h-20 border-3 border-[#1a1a1a] neo-shadow-sm object-cover"
+                />
+              ) : (
+                <div className="w-20 h-20 border-3 border-[#1a1a1a] neo-shadow-sm bg-[#ffe082] flex items-center justify-center text-2xl font-black">
+                  {initials}
+                </div>
+              )}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="absolute inset-0 bg-[#1a1a1a]/0 group-hover:bg-[#1a1a1a]/60 flex items-center justify-center transition-all cursor-pointer"
+              >
+                {isUploadingAvatar ? (
+                  <div className="w-5 h-5 border-2 border-[#ffffff]/30 border-t-[#ffffff] rounded-full animate-spin" />
+                ) : (
+                  <Camera className="w-5 h-5 text-[#ffffff] opacity-0 group-hover:opacity-100 transition-opacity" />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
               />
-            ) : (
-              <div className="w-16 h-16 border-3 border-[#1a1a1a] neo-shadow-sm bg-[#ffe082] flex items-center justify-center text-xl font-black flex-shrink-0">
-                {initials}
-              </div>
-            )}
+            </div>
             <div className="min-w-0">
               <p className="text-lg font-extrabold uppercase tracking-tight truncate">
                 {user?.name || "User"}
@@ -190,7 +284,7 @@ export default function ProfilePage() {
               <p className="text-xs font-mono text-[#555555] truncate">{user?.email}</p>
               <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 border-2 border-[#1a1a1a] bg-[#a7ffeb] text-[9px] font-black font-mono tracking-widest uppercase">
                 <Shield className="w-3 h-3" />
-                {user?.auth_provider === "credentials" ? "Email" : user?.auth_provider}
+                {user?.auth_provider === "credentials" ? "Email" : user?.auth_provider || "—"}
               </div>
             </div>
           </div>
@@ -268,9 +362,17 @@ export default function ProfilePage() {
               <Crown className="w-4 h-4 text-[#555555]" />
               <span className="text-xs font-black uppercase tracking-wider">Plan</span>
             </div>
-            <span className="px-3 py-1 border-2 border-[#1a1a1a] bg-[#ffe082] text-[10px] font-black uppercase tracking-wider">
-              {user?.plan || "free"}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 border-2 border-[#1a1a1a] bg-[#ffe082] text-[10px] font-black uppercase tracking-wider">
+                {user?.plan || "free"}
+              </span>
+              <Link
+                href={ROUTES.PLANS}
+                className="text-[10px] font-black uppercase tracking-wider text-[#d2c4fb] hover:text-[#1a1a1a] flex items-center gap-1 transition-colors"
+              >
+                Upgrade <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
           </div>
 
           <div className="px-6 py-4 flex items-center justify-between">
