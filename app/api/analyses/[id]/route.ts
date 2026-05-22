@@ -41,7 +41,7 @@ export async function GET(_request: Request, context: RouteContext) {
     // Fetch the parent document
     const { data: doc } = await supabase
       .from("documents")
-      .select("file_name, detected_type")
+      .select("file_name, detected_type, contract_text")
       .eq("id", analysis.document_id)
       .single();
 
@@ -56,6 +56,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({
       id: analysis.id,
       document_type: doc?.detected_type ?? "CONTRACT",
+      contract_text: doc?.contract_text ?? "",
       contract_summary: analysis.contract_summary ?? "",
       overall_risk_score: analysis.risk_score,
       risk_level: analysis.risk_level,

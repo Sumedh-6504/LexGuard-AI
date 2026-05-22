@@ -8,13 +8,13 @@ interface FindingsListProps {
   findings: Finding[];
 }
 
-const FILTER_COLORS: Record<string, string> = {
-  ALL:        "#00d4ff",
-  CRITICAL:   "#ff2d55",
-  HIGH:       "#ff6b35",
-  MEDIUM:     "#ffd60a",
-  LOW:        "#30d158",
-  NEGOTIABLE: "#a78bfa",
+const FILTER_CONFIG: Record<string, { bg: string; label: string }> = {
+  ALL:        { bg: "bg-[#d2c4fb]", label: "ALL" },
+  CRITICAL:   { bg: "bg-[#ff8a80]", label: "CRITICAL" },
+  HIGH:       { bg: "bg-[#ff8a80]/80", label: "HIGH" },
+  MEDIUM:     { bg: "bg-[#ffe082]", label: "MEDIUM" },
+  LOW:        { bg: "bg-[#a7ffeb]", label: "LOW" },
+  NEGOTIABLE: { bg: "bg-[#d2c4fb]", label: "NEGOTIABLE" },
 };
 
 const FILTERS = ["ALL", "CRITICAL", "HIGH", "MEDIUM", "LOW", "NEGOTIABLE"] as const;
@@ -39,9 +39,9 @@ export default function FindingsList({ findings }: FindingsListProps) {
     <div className="w-full space-y-6">
 
       {/* ── Filter bar ── */}
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-3 justify-center">
         {FILTERS.map((f) => {
-          const color   = FILTER_COLORS[f];
+          const cfg = FILTER_CONFIG[f];
           const isActive = filter === f;
           const count   = countFor(f);
 
@@ -49,23 +49,15 @@ export default function FindingsList({ findings }: FindingsListProps) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-[11px] font-bold font-mono tracking-[0.15em] uppercase transition-all duration-200 hover:scale-105 active:scale-100"
-              style={{
-                background: isActive ? `${color}22` : "rgba(10,28,58,0.8)",
-                border:     `1px solid ${isActive ? `${color}70` : "rgba(0,212,255,0.2)"}`,
-                color:      isActive ? color : "#8ab8d8",
-                boxShadow:  isActive ? `0 0 18px ${color}35` : "none",
-              }}
+              className={`flex items-center gap-2 px-4 py-2 border-2 border-[#1a1a1a] text-[11px] font-black font-mono tracking-wider uppercase transition-all duration-100 ${
+                isActive
+                  ? `${cfg.bg} translate-y-[-2px] shadow-[3px_3px_0px_0px_#1a1a1a]`
+                  : "bg-[#ffffff] hover:translate-y-[-1px] hover:shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-y-[1px] active:shadow-[0px_0px_0px_0px_#1a1a1a]"
+              }`}
             >
-              <span>{f}</span>
+              <span>{cfg.label}</span>
               {count > 0 && (
-                <span
-                  className="px-1.5 py-0.5 rounded text-[9px] font-black"
-                  style={{
-                    background: isActive ? `${color}30` : "rgba(0,212,255,0.12)",
-                    color:      isActive ? color : "#7ab0d0",
-                  }}
-                >
+                <span className="px-1.5 py-0.5 border border-[#1a1a1a] bg-[#ffffff] text-[9px] font-black text-[#1a1a1a]">
                   {count}
                 </span>
               )}
@@ -75,20 +67,10 @@ export default function FindingsList({ findings }: FindingsListProps) {
       </div>
 
       {/* ── Cards ── */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {filtered.length === 0 ? (
-          <div
-            className="text-center py-14 rounded-2xl"
-            style={{
-              background: "rgba(4,14,34,0.5)",
-              border: "1px dashed rgba(30,55,90,0.4)",
-              color: "#6a9ab8",
-              fontFamily: "var(--font-mono, monospace)",
-              fontSize: "0.8rem",
-              letterSpacing: "0.2em",
-            }}
-          >
-            [ NO FINDINGS MATCH THIS FILTER ]
+          <div className="text-center py-16 bg-[#ffffff] border-2 border-dashed border-[#1a1a1a] p-8 text-xs font-mono font-black uppercase tracking-wider text-[#555555]">
+            [ No findings match this filter query ]
           </div>
         ) : (
           filtered.map((finding, idx) => (

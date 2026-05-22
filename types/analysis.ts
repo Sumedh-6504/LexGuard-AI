@@ -57,6 +57,7 @@ export interface AnalysisMetadata {
 
 export interface ContractAnalysis {
   document_type: DocumentType;
+  contract_text?: string;
   contract_summary: string;
   overall_risk_score: number;
   risk_level: RiskLevel;

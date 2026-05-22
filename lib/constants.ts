@@ -24,5 +24,7 @@ export const ROUTES = {
   SIGN_IN:   "/auth/signin",
   UPLOAD:    "/upload",
   DASHBOARD: "/dashboard",
+  PROFILE:   "/profile",
+  SETTINGS:  "/settings",
   ANALYSIS:  (id: string) => `/analysis/${id}` as const,
 } as const;

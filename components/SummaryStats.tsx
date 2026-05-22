@@ -8,61 +8,35 @@ interface SummaryStatsProps {
 }
 
 const METRICS = [
-  { key: "total_findings", label: "TOTAL",    color: "#00d4ff" },
-  { key: "critical_count", label: "CRITICAL", color: "#ff2d55" },
-  { key: "high_count",     label: "HIGH",     color: "#ff6b35" },
-  { key: "medium_count",   label: "MEDIUM",   color: "#ffd60a" },
-  { key: "low_count",      label: "LOW",      color: "#30d158" },
+  { key: "total_findings", label: "TOTAL",    bg: "bg-[#d2c4fb]" },
+  { key: "critical_count", label: "CRITICAL", bg: "bg-[#ff8a80]" },
+  { key: "high_count",     label: "HIGH",     bg: "bg-[#ff8a80]/80" },
+  { key: "medium_count",   label: "MEDIUM",   bg: "bg-[#ffe082]" },
+  { key: "low_count",      label: "LOW",      bg: "bg-[#a7ffeb]" },
 ] as const;
 
 export default function SummaryStats({ stats }: SummaryStatsProps) {
   return (
-    <div className="space-y-3 print-card">
-      <p
-        className="text-center text-[10px] tracking-[0.35em] uppercase"
-        style={{ color: "#2a4565", fontFamily: "var(--font-mono, monospace)" }}
-      >
+    <div className="space-y-4 print-card">
+      <p className="text-center text-xs font-black tracking-widest uppercase font-mono text-[#555555]">
         ── Threat Assessment ──
       </p>
 
-      <div className="grid grid-cols-5 gap-2">
-        {METRICS.map(({ key, label, color }) => {
+      <div className="grid grid-cols-5 gap-4">
+        {METRICS.map(({ key, label, bg }) => {
           const count = stats[key];
           const isActive = count > 0;
           return (
             <div
               key={key}
-              className="relative rounded-xl p-3 text-center transition-all duration-300 hover:scale-105 cursor-default"
-              style={{
-                background: isActive ? `${color}12` : "rgba(10,20,40,0.5)",
-                border:     `1px solid ${isActive ? `${color}40` : "rgba(30,50,80,0.5)"}`,
-                boxShadow:  isActive ? `0 0 18px ${color}22` : "none",
-              }}
+              className={`border-2 border-[#1a1a1a] p-3 text-center transition-all duration-100 cursor-default neo-shadow-sm ${
+                isActive ? bg : "bg-[#ffffff] opacity-40"
+              }`}
             >
-              {/* Top accent line */}
-              <div
-                className="absolute top-0 left-1/4 right-1/4 h-[1px] rounded-full"
-                style={{ background: color, opacity: isActive ? 0.7 : 0.2 }}
-              />
-
-              <span
-                className="text-2xl font-black block"
-                style={{
-                  color,
-                  opacity: isActive ? 1 : 0.3,
-                  fontFamily: "var(--font-mono, monospace)",
-                }}
-              >
+              <span className="text-3xl font-black block font-sans text-[#1a1a1a]">
                 {count}
               </span>
-              <span
-                className="text-[9px] tracking-[0.22em] block mt-0.5"
-                style={{
-                  color,
-                  opacity: isActive ? 0.6 : 0.25,
-                  fontFamily: "var(--font-mono, monospace)",
-                }}
-              >
+              <span className="text-[9px] font-black tracking-widest block mt-1 font-mono text-[#1a1a1a] uppercase">
                 {label}
               </span>
             </div>

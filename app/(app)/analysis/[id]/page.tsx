@@ -1,10 +1,6 @@
 /**
- * Analysis Detail Page — Persistent, shareable analysis results.
- *
- * Replaces the old /results page that used sessionStorage.
- * Fetches the analysis from Supabase by ID and verifies ownership.
- * Renders the same beautiful results UI (RiskScoreBadge, SummaryStats,
- * FindingsList, SimulatePanel).
+ * Analysis Detail Page — Premium Executive Two-Pane Split Risk Workbench.
+ * Fully aligned with the LexGuard Retro Neo-Brutalist visual design system.
  */
 
 "use client";
@@ -16,7 +12,7 @@ import RiskScoreBadge from "@/components/RiskScoreBadge";
 import SummaryStats from "@/components/SummaryStats";
 import FindingsList from "@/components/FindingsList";
 import SimulatePanel from "@/components/SimulatePanel";
-import { ArrowLeft, Download, FileText, ShieldAlert, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, Download, ShieldAlert, LayoutDashboard, Scroll } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 
 export default function AnalysisDetailPage() {
@@ -55,19 +51,11 @@ export default function AnalysisDetailPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-[calc(100vh-3.5rem)] flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: "rgba(0,212,255,0.3)", borderTopColor: "#00d4ff" }}
-          />
-          <span
-            className="text-sm tracking-[0.25em] uppercase"
-            style={{ color: "#00d4ff", fontFamily: "var(--font-mono, monospace)" }}
-          >
-            Loading analysis...
-          </span>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-[#f5f4f0]">
+        <div className="w-8 h-8 border-4 border-[#1a1a1a]/20 border-t-[#d2c4fb] rounded-full animate-spin" />
+        <span className="text-xs font-mono font-black uppercase tracking-widest text-[#555555]">
+          Loading analysis...
+        </span>
       </div>
     );
   }
@@ -75,15 +63,16 @@ export default function AnalysisDetailPage() {
   // Error state
   if (error || !analysis) {
     return (
-      <div className="min-h-[calc(100vh-3.5rem)] flex flex-col items-center justify-center gap-4">
-        <ShieldAlert className="w-10 h-10" style={{ color: "#5a8aaa" }} />
-        <p className="text-lg font-bold" style={{ color: "#c8d8e8" }}>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#f5f4f0] p-6 text-center">
+        <div className="p-4 border-2 border-[#1a1a1a] bg-[#ff8a80] neo-shadow-sm">
+          <ShieldAlert className="w-8 h-8 text-[#1a1a1a]" />
+        </div>
+        <p className="text-lg font-extrabold uppercase text-[#1a1a1a]">
           {error || "Analysis not found"}
         </p>
         <button
           onClick={() => router.push(ROUTES.DASHBOARD)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          style={{ color: "#00d4ff" }}
+          className="px-5 py-2.5 bg-[#ffffff] border-2 border-[#1a1a1a] text-xs font-black uppercase tracking-wider neo-btn text-[#1a1a1a] flex items-center gap-2"
         >
           <LayoutDashboard className="w-4 h-4" />
           Back to Dashboard
@@ -92,153 +81,160 @@ export default function AnalysisDetailPage() {
     );
   }
 
-  return (
-    <div className="pb-24 relative overflow-x-hidden">
-      {/* Ambient glow blobs */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: "-5%", left: "-8%",
-          width: "45%", height: "45%",
-          borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(0,100,200,0.12) 0%, transparent 70%)",
-          filter: "blur(40px)",
-        }}
-      />
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          bottom: "10%", right: "-5%",
-          width: "35%", height: "35%",
-          borderRadius: "50%",
-          background: "radial-gradient(ellipse, rgba(255,45,85,0.08) 0%, transparent 70%)",
-          filter: "blur(50px)",
-        }}
-      />
+  // Highlight predatory clauses inside raw contract text
+  const renderHighlightedContract = () => {
+    const rawText = analysis.contract_text || "";
+    if (!rawText.trim()) {
+      return (
+        <div className="text-center py-16 text-xs font-mono font-black uppercase tracking-wider text-[#555555]">
+          [ No contract raw text available for highlighting ]
+        </div>
+      );
+    }
 
-      {/* Action bar */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6">
+    // Escape HTML first to prevent any script injections or rendering bugs
+    let escapedHtml = rawText
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    // Sort findings by length descending to prevent sub-string replacements breaking parent tags
+    const sortedFindings = [...analysis.findings]
+      .filter((f) => !f.false_positive && f.clause_text && f.clause_text.trim())
+      .sort((a, b) => b.clause_text.length - a.clause_text.length);
+
+    sortedFindings.forEach((finding) => {
+      const clause = finding.clause_text.trim();
+      const escapedClause = clause
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      if (escapedHtml.includes(escapedClause)) {
+        const markerBg =
+          finding.severity === "CRITICAL" || finding.severity === "HIGH"
+            ? "bg-[#ff8a80]"
+            : "bg-[#ffe082]";
+
+        escapedHtml = escapedHtml.split(escapedClause).join(
+          `<mark class="px-1 py-0.5 border border-[#1a1a1a] ${markerBg} text-[#1a1a1a] font-extrabold cursor-pointer rounded-none hover:opacity-80 transition-opacity" title="${finding.title} (${finding.severity})">${escapedClause}</mark>`
+        );
+      }
+    });
+
+    return (
+      <div 
+        className="whitespace-pre-wrap font-serif text-[15px] leading-relaxed text-[#1a1a1a] text-justify select-text selection:bg-[#ffe082]"
+        dangerouslySetInnerHTML={{ __html: escapedHtml }}
+      />
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f5f4f0] text-[#1a1a1a] pb-24">
+      
+      {/* ── Action Bar / Top Nav ── */}
+      <div className="max-w-7xl mx-auto px-6 pt-8">
         <div className="flex items-center justify-between">
           <button
             onClick={() => router.push(ROUTES.DASHBOARD)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 hover:scale-105"
-            style={{
-              color: "#a0d4f0",
-              background: "rgba(0,212,255,0.08)",
-              border: "1px solid rgba(0,212,255,0.25)",
-              fontFamily: "var(--font-mono, monospace)",
-            }}
+            className="flex items-center gap-2 px-4 py-2 border-2 border-[#1a1a1a] bg-[#ffffff] text-xs font-black tracking-wider uppercase rounded-none neo-shadow-sm hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_#1a1a1a] active:translate-y-[1px] transition-all text-[#1a1a1a]"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Dashboard
+            <ArrowLeft className="w-4 h-4" />
+            <span>Dashboard</span>
           </button>
 
           <button
             onClick={() => window.print()}
-            className="no-print flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wider transition-all duration-200 hover:scale-105"
-            style={{
-              color: "#a0d4f0",
-              background: "rgba(0,212,255,0.08)",
-              border: "1px solid rgba(0,212,255,0.25)",
-              fontFamily: "var(--font-mono, monospace)",
-            }}
+            className="no-print flex items-center gap-2 px-4 py-2 border-2 border-[#1a1a1a] bg-[#ffe082] text-xs font-black tracking-wider uppercase rounded-none neo-shadow-sm hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_#1a1a1a] active:translate-y-[1px] transition-all text-[#1a1a1a]"
           >
-            <Download className="w-3.5 h-3.5" />
-            Export
+            <Download className="w-4 h-4" />
+            <span>Export Report</span>
           </button>
         </div>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 mt-6 space-y-8">
-        {/* Hero card: Score + Summary */}
-        <div
-          className="flex flex-col md:flex-row items-center gap-8 rounded-2xl p-7 glass-card animate-fade-up"
-          style={{
-            background: "rgba(4,14,34,0.7)",
-            border: "1px solid rgba(0,212,255,0.12)",
-            backdropFilter: "blur(20px)",
-            boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-          }}
-        >
-          <div className="flex-shrink-0">
-            <RiskScoreBadge score={analysis.overall_risk_score} level={analysis.risk_level} />
-          </div>
-
-          <div className="flex-1 space-y-4 text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-2">
-              <span
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-mono tracking-[0.2em] uppercase"
-                style={{
-                  color: "#00d4ff",
-                  background: "rgba(0,212,255,0.08)",
-                  border: "1px solid rgba(0,212,255,0.2)",
-                }}
-              >
-                <FileText className="w-3 h-3" />
-                {analysis.document_type.replace(/_/g, " ")}
+      {/* ── Main Two-Pane Split-Screen Workspace Grid ── */}
+      <div className="max-w-7xl mx-auto px-6 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
+          
+          {/* ── LEFT PANE: Premium Contract Document Viewer (60% width) ── */}
+          <div className="md:col-span-3 bg-[#ffffff] border-3 border-[#1a1a1a] p-8 neo-shadow-lg flex flex-col space-y-6 h-[calc(100vh-14rem)] min-h-[500px]">
+            <div className="flex items-center justify-between pb-4 border-b-2 border-[#1a1a1a]/15">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 border-2 border-[#1a1a1a] bg-[#d2c4fb] neo-shadow-sm">
+                  <Scroll className="w-5 h-5 text-[#1a1a1a]" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black uppercase tracking-tight font-sans">Agreement Text</h2>
+                  <p className="text-[9px] font-black uppercase tracking-wider text-[#555555] font-mono mt-0.5">
+                    Live document audit with AI marker highlights
+                  </p>
+                </div>
+              </div>
+              
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 border-2 border-[#1a1a1a] bg-[#a7ffeb] text-[9px] font-black font-mono tracking-widest uppercase text-[#1a1a1a]">
+                {analysis.document_type ? analysis.document_type.replace(/_/g, " ") : "CONTRACT"}
               </span>
             </div>
 
-            <div>
-              <p
-                className="text-[10px] font-bold tracking-[0.3em] uppercase mb-2"
-                style={{ color: "#5aadce", fontFamily: "var(--font-mono, monospace)" }}
-              >
-                Contract Summary
-              </p>
-              <p className="text-base font-medium leading-relaxed" style={{ color: "#c0d8ec" }}>
-                {analysis.contract_summary}
-              </p>
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+              {renderHighlightedContract()}
+            </div>
+          </div>
+
+          {/* ── RIGHT PANE: Interactive Assessment Control Deck (40% width) ── */}
+          <div className="md:col-span-2 space-y-6">
+            
+            {/* Hero Card Score Block */}
+            <div className="bg-[#ffffff] border-3 border-[#1a1a1a] p-6 neo-shadow-lg flex flex-col sm:flex-row items-center gap-6">
+              <div className="flex-shrink-0">
+                <RiskScoreBadge score={analysis.overall_risk_score} level={analysis.risk_level} />
+              </div>
+              <div className="flex-grow space-y-3 text-center sm:text-left">
+                <p className="text-[10px] font-black tracking-widest uppercase font-mono text-[#555555]">
+                  Summary Analysis
+                </p>
+                <p className="text-sm font-bold leading-relaxed text-[#1a1a1a]">
+                  {analysis.contract_summary}
+                </p>
+                {analysis.analysis_metadata && (
+                  <p className="text-[9px] font-black tracking-widest uppercase font-mono text-[#777777]">
+                    CONFIDENCE: {Math.round(analysis.analysis_metadata.judge_confidence * 100)}%
+                  </p>
+                )}
+              </div>
             </div>
 
-            {analysis.analysis_metadata && (
-              <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                <span className="text-[10px] font-semibold font-mono tracking-wider" style={{ color: "#6a9ab8" }}>
-                  Confidence: {Math.round(analysis.analysis_metadata.judge_confidence * 100)}%
-                </span>
-                <span className="text-[10px] font-semibold font-mono tracking-wider" style={{ color: "#6a9ab8" }}>
-                  {new Date(analysis.analysis_metadata.analysis_timestamp).toLocaleTimeString()}
-                </span>
+            {/* Metric Assessment Stats */}
+            <div className="bg-[#ffffff] border-3 border-[#1a1a1a] p-6 neo-shadow-lg">
+              <SummaryStats stats={analysis.summary_stats} />
+            </div>
+
+            {/* Worst Case Simulator */}
+            {analysis.findings.length > 0 && (
+              <div className="no-print">
+                <SimulatePanel analysis={analysis} />
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Stats Row */}
-        <div
-          className="rounded-2xl p-5 glass-card animate-fade-up"
-          style={{
-            animationDelay: "80ms",
-            background: "rgba(4,14,34,0.6)",
-            border: "1px solid rgba(0,212,255,0.08)",
-            backdropFilter: "blur(16px)",
-          }}
-        >
-          <SummaryStats stats={analysis.summary_stats} />
-        </div>
+            {/* Findings Accordion Deck */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-0.5 bg-[#1a1a1a]" />
+                <h3 className="text-xs font-black tracking-widest uppercase font-mono text-[#1a1a1a]">
+                  Findings Feed
+                </h3>
+                <div className="flex-1 h-0.5 bg-[#1a1a1a]" />
+              </div>
+              <FindingsList findings={analysis.findings} />
+            </div>
 
-        {/* Simulate */}
-        {analysis.findings.length > 0 && (
-          <div className="no-print animate-fade-up" style={{ animationDelay: "120ms" }}>
-            <SimulatePanel analysis={analysis} />
           </div>
-        )}
 
-        {/* Findings */}
-        <div className="space-y-5 animate-fade-up" style={{ animationDelay: "160ms" }}>
-          <div className="flex items-center gap-4 pt-2">
-            <div className="flex-1 h-px" style={{ background: "linear-gradient(to right, rgba(0,212,255,0.2), transparent)" }} />
-            <h2
-              className="text-xs font-bold tracking-[0.3em] uppercase"
-              style={{ color: "#7ac8e8", fontFamily: "var(--font-mono, monospace)" }}
-            >
-              Detailed Findings
-            </h2>
-            <div className="flex-1 h-px" style={{ background: "linear-gradient(to left, rgba(0,212,255,0.2), transparent)" }} />
-          </div>
-          <FindingsList findings={analysis.findings} />
         </div>
       </div>
+
     </div>
   );
 }

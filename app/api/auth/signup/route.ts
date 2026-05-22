@@ -84,6 +84,7 @@ export async function POST(request: Request) {
         plan: "free",
         // Note: Make sure to run: ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
         password_hash: passwordHash,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
     if (insertErr) {

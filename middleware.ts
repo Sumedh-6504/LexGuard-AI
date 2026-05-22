@@ -19,16 +19,20 @@ import { NextResponse } from "next/server";
 const PUBLIC_ROUTES = [
   "/",              // Marketing landing page
   "/auth/signin",   // Sign-in page
+  "/auth/signup",   // Sign-up page
   "/api/auth",      // NextAuth API routes (OAuth callbacks, CSRF, etc.)
+  "/results",       // Guest analysis results
 ];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   // Allow public routes, static assets, and API routes through
-  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-    pathname.startsWith(route)
-  );
+  const isPublicRoute =
+    pathname === "/" ||
+    PUBLIC_ROUTES.slice(1).some((route) =>
+      pathname.startsWith(route)
+    );
   const isStaticAsset =
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||

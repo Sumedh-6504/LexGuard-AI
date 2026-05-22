@@ -1,9 +1,6 @@
 /**
  * Upload Page — Contract analysis entry point (authenticated).
- *
- * Migrated from the original root page.tsx. After a successful analysis,
- * saves the result to Supabase and redirects to /analysis/[id] instead
- * of using sessionStorage.
+ * Styled in beautiful Retro Neo-Brutalist design.
  */
 
 "use client";
@@ -11,26 +8,71 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import ContractUpload from "@/components/ContractUpload";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, FileText, ArrowRight } from "lucide-react";
+
+// Premium Predatory Templates for instant testing
+const PREDATORY_TEMPLATES = [
+  {
+    title: "SaaS Service Agreement",
+    desc: "Contains unilateral auto-renewal locks, hidden pricing fees, and extreme indemnity liability shifts.",
+    text: `SOFTWARE SERVICE AGREEMENT
+
+This software service agreement ("Agreement") is entered into by and between CloudSaaS Corp ("Provider") and the Subscriber.
+
+1. TERM AND AUTOMATIC RENEWAL: This agreement shall commence on the Effective Date and remain in effect for a period of one (1) year. EXCEPT AS OTHERWISE SPECIFIED HEREIN, THIS AGREEMENT SHALL AUTOMATICALLY RENEW FOR SUCCESSIVE THREE (3) YEAR TERMS unless either party provides written notice of non-renewal at least 180 days prior to the expiration of the then-current term.
+
+2. PRICE ADJUSTMENTS: Provider reserves the right, in its sole and absolute discretion, to increase subscription pricing by up to forty percent (40%) at the commencement of any renewal term without prior notification to the Subscriber.
+
+3. INDEMNIFICATION: Subscriber agrees to indemnify, defend, and hold harmless Provider and its affiliates from and against any and all claims, losses, damages, liabilities, and expenses (including reasonable attorneys' fees) arising out of or in connection with the software platform, even in cases where Provider's direct negligence caused the damages.`
+  },
+  {
+    title: "Employment Agreement",
+    desc: "Features highly predatory non-compete clauses (unlimited geography) and unilateral IP ownership assignments.",
+    text: `EXECUTIVE EMPLOYMENT AGREEMENT
+
+This Employment Agreement is entered into by TechStart Inc ("Company") and the undersigned Employee.
+
+1. NON-COMPETE CLAUSE: During the Term of Employment and for a period of five (5) years following the termination of employment for any reason, Employee shall not directly or indirectly engage in, own, manage, or advise any business that competes with the Company anywhere in the absolute world.
+
+2. IP INTELLECTUAL PROPERTY ASSIGNMENT: Employee hereby covenants, agrees, and irrevocably assigns to the Company all rights, title, and interests in and to all ideas, inventions, patents, processes, and products developed, conceived, or designed by the Employee during the term of employment, regardless of whether developed during business hours or using Company equipment.`
+  },
+  {
+    title: "Mutual NDA (Non-Disclosure)",
+    desc: "Asymmetrical definition of confidential details and perpetual survival times.",
+    text: `MUTUAL NON-DISCLOSURE AGREEMENT
+
+This Mutual Non-Disclosure Agreement is made by and between Partner A and Partner B.
+
+1. CONFIDENTIAL INFORMATION: Confidential Information shall mean all proprietary information disclosed by Discloser to Recipient. However, Recipient's obligations of non-disclosure shall apply to Partner A's disclosures forever. In contrast, Partner B's disclosures shall only be protected for a period of six (6) months.
+
+2. LIQUIDATED DAMAGES: In the event of any breach of this Agreement by the Recipient, Recipient shall pay to Discloser, as liquidated damages and not as a penalty, the sum of Five Hundred Thousand Dollars ($500,000) per breach, without the need for Discloser to prove actual damages.`
+  }
+];
 
 export default function UploadPage() {
   const router = useRouter();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStep, setAnalysisStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [text, setText] = useState("");
 
-  const handleAnalyze = async (text: string) => {
+  const handleAnalyze = async (textToScan: string) => {
+    if (!textToScan.trim()) {
+      setError("Please paste a contract or load a template before initiating scan.");
+      return;
+    }
+
     setIsAnalyzing(true);
     setAnalysisStep("Detective scanning...");
     setError(null);
 
     try {
-      const stepTimer = setTimeout(() => setAnalysisStep("Judge verifying..."), 4000);
+      const stepTimer = setTimeout(() => setAnalysisStep("Judge verifying..."), 4500);
 
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contractText: text }),
+        body: JSON.stringify({ contractText: textToScan }),
       });
 
       clearTimeout(stepTimer);
@@ -39,7 +81,7 @@ export default function UploadPage() {
         const body = await res.json().catch(() => ({}));
         const detail = body?.detail ?? body?.error ?? `Server error (${res.status})`;
         if (res.status === 429) {
-          setError(`Rate limit: ${detail}`);
+          setError(`Rate limit block: ${detail}`);
         } else {
           setError(detail);
         }
@@ -50,12 +92,11 @@ export default function UploadPage() {
 
       const data = await res.json();
 
-      // If the API returned an analysis ID (saved to Supabase), redirect to it.
-      // Otherwise, fall back to sessionStorage for backwards compatibility.
       if (data.id) {
         router.push(`/analysis/${data.id}`);
       } else {
-        sessionStorage.setItem("lexguard_results", JSON.stringify(data));
+        const resultData = { ...data, contract_text: textToScan };
+        sessionStorage.setItem("lexguard_results", JSON.stringify(resultData));
         router.push("/results");
       }
     } catch {
@@ -66,84 +107,77 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-3.5rem)] p-4 relative overflow-hidden">
-      {/* Background blobs */}
-      <div
-        className="absolute top-[-8%] left-[-8%] w-[38%] h-[38%] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse, rgba(0,100,200,0.15) 0%, transparent 70%)",
-          filter: "blur(60px)",
-        }}
-      />
-      <div
-        className="absolute bottom-[-8%] right-[-8%] w-[35%] h-[35%] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(ellipse, rgba(255,45,85,0.1) 0%, transparent 70%)",
-          filter: "blur(60px)",
-        }}
-      />
+    <div className="p-8 max-w-4xl mx-auto space-y-10 text-[#1a1a1a]">
+      {/* ── Page Header ── */}
+      <div>
+        <h1 className="text-4xl font-extrabold tracking-tight uppercase font-sans text-[#1a1a1a]">
+          Upload Contract
+        </h1>
+        <p className="text-xs font-mono tracking-wider text-[#555555] uppercase mt-1">
+          Upload your contract for AI-powered risk analysis
+        </p>
+      </div>
 
-      <div className="max-w-2xl w-full space-y-4 relative z-10">
-        {/* Header */}
-        <div className="text-center space-y-1.5">
-          <h1 className="text-2xl font-black tracking-tight" style={{ color: "#e8f4ff" }}>
-            Analyze a Contract
-          </h1>
-          <p
-            className="text-xs font-semibold tracking-[0.22em] uppercase"
-            style={{ color: "#5aaac8", fontFamily: "var(--font-mono, monospace)" }}
-          >
-            Upload or paste your contract text below
+      {/* ── Error Banner ── */}
+      {error && (
+        <div className="flex items-start gap-2.5 p-3.5 bg-[#ff8a80] border-2 border-[#1a1a1a] text-xs font-bold text-[#1a1a1a] neo-shadow-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* ── Core Upload & Dropzone Component ── */}
+      <div className="bg-[#ffffff] border-3 border-[#1a1a1a] p-8 neo-shadow-lg">
+        <ContractUpload
+          onAnalyze={handleAnalyze}
+          isAnalyzing={isAnalyzing}
+          analysisStep={analysisStep}
+          text={text}
+          onTextChange={setText}
+        />
+      </div>
+
+      {/* ── Quick Start Predatory Templates ── */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-extrabold tracking-tight uppercase font-sans text-[#1a1a1a]">
+            Quick-Start Predatory Templates
+          </h2>
+          <p className="text-xs font-mono tracking-wider text-[#555555] uppercase mt-1">
+            Test the system with pre-loaded risky contracts
           </p>
         </div>
 
-        {/* Error banner */}
-        {error && (
-          <div
-            className="flex items-start gap-3 px-4 py-3 rounded-xl text-sm font-medium"
-            style={{
-              background: "rgba(255,45,85,0.1)",
-              border: "1px solid rgba(255,45,85,0.35)",
-              color: "#ff6080",
-            }}
-          >
-            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#ff2d55" }} />
-            <span>{error}</span>
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {PREDATORY_TEMPLATES.map((tmpl) => (
+            <div
+              key={tmpl.title}
+              className="bg-[#ffffff] border-2 border-[#1a1a1a] p-6 neo-shadow flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-10 h-10 bg-[#ffffff] border-2 border-[#1a1a1a] neo-shadow-sm flex items-center justify-center mb-4">
+                  <FileText className="w-5 h-5 text-[#1a1a1a]" />
+                </div>
+                <h3 className="text-base font-extrabold uppercase tracking-tight mb-2">
+                  {tmpl.title}
+                </h3>
+                <p className="text-[11px] leading-relaxed text-[#555555] font-medium mb-6">
+                  {tmpl.desc}
+                </p>
+              </div>
 
-        {/* Upload card */}
-        <div
-          className="rounded-2xl p-5 relative group"
-          style={{
-            background: "rgba(4,14,34,0.7)",
-            border: "1px solid rgba(0,212,255,0.15)",
-            backdropFilter: "blur(20px)",
-            boxShadow: "0 8px 40px rgba(0,0,0,0.4)",
-          }}
-        >
-          <div
-            className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-            style={{
-              background: "linear-gradient(to bottom, rgba(0,212,255,0.04), transparent)",
-            }}
-          />
-          <div className="relative z-10">
-            <ContractUpload
-              onAnalyze={handleAnalyze}
-              isAnalyzing={isAnalyzing}
-              analysisStep={analysisStep}
-            />
-          </div>
+              <button
+                onClick={() => {
+                  setText(tmpl.text);
+                }}
+                className="w-full py-2 bg-[#ffe082] border-2 border-[#1a1a1a] text-[10px] font-black uppercase tracking-wider neo-shadow-sm hover:translate-y-[-1px] active:translate-y-[1px] transition-all flex items-center justify-center gap-1.5 text-[#1a1a1a]"
+              >
+                <span>Load Template</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
         </div>
-
-        {/* Footer hint */}
-        <p
-          className="text-center text-[10px] tracking-[0.15em]"
-          style={{ color: "#2a4560", fontFamily: "var(--font-mono, monospace)" }}
-        >
-          Powered by two adversarial Gemini agents · Detective + Judge
-        </p>
       </div>
     </div>
   );
