@@ -195,7 +195,7 @@ export default function ResultsPage() {
         )}
 
         {/* ── Findings Feed — Full Width ── */}
-        <div className="space-y-4">
+        <div className="space-y-4 pt-8">
           <div className="flex items-center gap-4">
             <div className="flex-1 h-0.5 bg-[#1a1a1a]" />
             <h3 className="text-xs font-black tracking-widest uppercase font-mono text-[#1a1a1a]">
