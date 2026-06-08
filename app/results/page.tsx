@@ -1,5 +1,5 @@
 /**
- * Guest/Demo Results Page — Redesigned with premium executive Two-Pane Split Risk Workbench.
+ * Guest/Demo Results Page — Redesigned with premium executive Stacked Risk Workbench.
  * Fully aligned with the LexGuard Retro Neo-Brutalist visual design system.
  */
 
@@ -12,12 +12,13 @@ import RiskScoreBadge from "@/components/RiskScoreBadge";
 import SummaryStats from "@/components/SummaryStats";
 import FindingsList from "@/components/FindingsList";
 import SimulatePanel from "@/components/SimulatePanel";
-import { ArrowLeft, Download, Scroll } from "lucide-react";
+import { ArrowLeft, Download, Scroll, ChevronDown, ChevronUp } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 
 export default function ResultsPage() {
   const router = useRouter();
   const [analysis, setAnalysis] = useState<ContractAnalysis | null>(null);
+  const [showContract, setShowContract] = useState(false);
 
   useEffect(() => {
     const data = sessionStorage.getItem("lexguard_results");
@@ -121,84 +122,88 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* ── Main Two-Pane Split-Screen Workspace Grid ── */}
-      <div className="max-w-7xl mx-auto px-6 mt-8">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
-          
-          {/* ── LEFT PANE: Premium Contract Document Viewer (60% width) ── */}
-          <div className="md:col-span-3 bg-[#ffffff] border-3 border-[#1a1a1a] p-8 neo-shadow-lg flex flex-col space-y-6 h-[calc(100vh-14rem)] min-h-[500px]">
-            <div className="flex items-center justify-between pb-4 border-b-2 border-[#1a1a1a]/15">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 border-2 border-[#1a1a1a] bg-[#d2c4fb] neo-shadow-sm">
-                  <Scroll className="w-5 h-5 text-[#1a1a1a]" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-black uppercase tracking-tight font-sans">Agreement Text (Demo)</h2>
-                  <p className="text-[9px] font-black uppercase tracking-wider text-[#555555] font-mono mt-0.5">
-                    Live document audit with AI marker highlights
-                  </p>
-                </div>
-              </div>
-              
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 border-2 border-[#1a1a1a] bg-[#a7ffeb] text-[9px] font-black font-mono tracking-widest uppercase text-[#1a1a1a]">
-                {analysis.document_type ? analysis.document_type.replace(/_/g, " ") : "CONTRACT"}
-              </span>
-            </div>
+      {/* ── Main Workspace — Full-Width Layout ── */}
+      <div className="max-w-7xl mx-auto px-6 mt-8 space-y-8">
 
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-              {renderHighlightedContract()}
+        {/* ── Top Row: Score + Stats ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-[#ffffff] border-3 border-[#1a1a1a] p-6 neo-shadow-lg flex flex-col sm:flex-row items-center gap-6">
+            <div className="flex-shrink-0">
+              <RiskScoreBadge score={analysis.overall_risk_score} level={analysis.risk_level} />
+            </div>
+            <div className="flex-grow space-y-3 text-center sm:text-left">
+              <p className="text-[10px] font-black tracking-widest uppercase font-mono text-[#555555]">
+                Summary Analysis
+              </p>
+              <p className="text-sm font-bold leading-relaxed text-[#1a1a1a]">
+                {analysis.contract_summary}
+              </p>
+              {analysis.analysis_metadata && (
+                <p className="text-[9px] font-black tracking-widest uppercase font-mono text-[#777777]">
+                  CONFIDENCE: {Math.round(analysis.analysis_metadata.judge_confidence * 100)}%
+                </p>
+              )}
             </div>
           </div>
 
-          {/* ── RIGHT PANE: Interactive Assessment Control Deck (40% width) ── */}
-          <div className="md:col-span-2 space-y-6">
-            
-            {/* Hero Card Score Block */}
-            <div className="bg-[#ffffff] border-3 border-[#1a1a1a] p-6 neo-shadow-lg flex flex-col sm:flex-row items-center gap-6">
-              <div className="flex-shrink-0">
-                <RiskScoreBadge score={analysis.overall_risk_score} level={analysis.risk_level} />
+          <div className="bg-[#ffffff] border-3 border-[#1a1a1a] p-6 neo-shadow-lg">
+            <SummaryStats stats={analysis.summary_stats} />
+          </div>
+        </div>
+
+        {/* ── Collapsible Contract Text Viewer ── */}
+        {analysis.contract_text?.trim() && (
+          <div className="bg-[#ffffff] border-3 border-[#1a1a1a] neo-shadow-lg overflow-hidden">
+            <button
+              onClick={() => setShowContract(!showContract)}
+              className="w-full flex items-center justify-between px-6 py-4 bg-[#1a1a1a] hover:bg-[#2a2a2a] transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <Scroll className="w-4 h-4 text-[#ffffff]" />
+                <span className="text-sm font-black tracking-wider uppercase text-[#ffffff] font-mono">
+                  Agreement Text (Demo)
+                </span>
+                <span className="px-2 py-0.5 bg-[#a7ffeb] border border-[#1a1a1a] text-[8px] font-black font-mono tracking-widest uppercase text-[#1a1a1a]">
+                  {analysis.document_type ? analysis.document_type.replace(/_/g, " ") : "CONTRACT"}
+                </span>
               </div>
-              <div className="flex-grow space-y-3 text-center sm:text-left">
-                <p className="text-[10px] font-black tracking-widest uppercase font-mono text-[#555555]">
-                  Summary Analysis
-                </p>
-                <p className="text-sm font-bold leading-relaxed text-[#1a1a1a]">
-                  {analysis.contract_summary}
-                </p>
-                {analysis.analysis_metadata && (
-                  <p className="text-[9px] font-black tracking-widest uppercase font-mono text-[#777777]">
-                    CONFIDENCE: {Math.round(analysis.analysis_metadata.judge_confidence * 100)}%
-                  </p>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-mono text-[#ffffff]/60 uppercase tracking-wider hidden sm:inline">
+                  {showContract ? "Collapse" : "Expand to view highlighted clauses"}
+                </span>
+                {showContract ? (
+                  <ChevronUp className="w-5 h-5 text-[#ffffff]" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-[#ffffff]" />
                 )}
               </div>
-            </div>
+            </button>
 
-            {/* Metric Assessment Stats */}
-            <div className="bg-[#ffffff] border-3 border-[#1a1a1a] p-6 neo-shadow-lg">
-              <SummaryStats stats={analysis.summary_stats} />
-            </div>
-
-            {/* Worst Case Simulator */}
-            {analysis.findings.length > 0 && (
-              <div className="no-print">
-                <SimulatePanel analysis={analysis} />
+            {showContract && (
+              <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                {renderHighlightedContract()}
               </div>
             )}
-
-            {/* Findings Accordion Deck */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-0.5 bg-[#1a1a1a]" />
-                <h3 className="text-xs font-black tracking-widest uppercase font-mono text-[#1a1a1a]">
-                  Findings Feed
-                </h3>
-                <div className="flex-1 h-0.5 bg-[#1a1a1a]" />
-              </div>
-              <FindingsList findings={analysis.findings} />
-            </div>
-
           </div>
+        )}
 
+        {/* ── Worst-Case Simulator ── */}
+        {analysis.findings.length > 0 && (
+          <div className="no-print">
+            <SimulatePanel analysis={analysis} />
+          </div>
+        )}
+
+        {/* ── Findings Feed — Full Width ── */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-0.5 bg-[#1a1a1a]" />
+            <h3 className="text-xs font-black tracking-widest uppercase font-mono text-[#1a1a1a]">
+              Findings Feed
+            </h3>
+            <div className="flex-1 h-0.5 bg-[#1a1a1a]" />
+          </div>
+          <FindingsList findings={analysis.findings} />
         </div>
       </div>
 
