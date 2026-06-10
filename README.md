@@ -17,7 +17,7 @@ LexGuard is an AI-powered contract analysis platform that uses three adversarial
 
 > **Screenshot: Hero / Landing Page**
 >
-> ![Landing Page](docs/screenshots/landing.png)
+> ![Landing Page](images/landing.png)
 
 ---
 
@@ -58,35 +58,35 @@ LexGuard is an AI-powered contract analysis platform that uses three adversarial
 
 > **Dashboard — Recent analyses, risk overview, quick stats**
 >
-> ![Dashboard](docs/screenshots/dashboard.png)
+> ![Dashboard](images/1.png)
 
 > **Upload — Drag-and-drop PDF/DOCX or paste contract text**
 >
-> ![Upload](docs/screenshots/upload.png)
+> ![Upload](images/2.png)
 
 > **Analysis Detail — Two-pane risk workbench with clause highlighting**
 >
-> ![Analysis Detail](docs/screenshots/analysis-detail.png)
+> ![Analysis Detail](images/3.png)
 
 > **Contracts — Grid/list view, search, filter by risk level**
 >
-> ![Contracts](docs/screenshots/contracts.png)
+> ![Contracts](images/4.png)
 
 > **Worst-Case Simulator — AI-generated consequence narratives**
 >
-> ![Simulator](docs/screenshots/simulator.png)
+> ![Simulator](images/5.png)
 
 > **Profile — Avatar, plan, auth provider, password management**
 >
-> ![Profile](docs/screenshots/profile.png)
+> ![Profile](images/6.png)
 
 > **Plans & Pricing — Free vs Pro tier comparison**
 >
-> ![Plans](docs/screenshots/plans.png)
+> ![Plans](images/7.png)
 
 > **Sign In — OAuth (Google, GitHub) + credentials**
 >
-> ![Sign In](docs/screenshots/signin.png)
+> ![Sign In](images/8.png)
 
 ---
 
@@ -96,7 +96,7 @@ LexGuard is an AI-powered contract analysis platform that uses three adversarial
 >
 > Generate this diagram using [**Eraser.io**](https://eraser.io) (recommended — supports Mermaid, has AI diagram generation) or paste the Mermaid code below into [mermaid.live](https://mermaid.live) to export as PNG/SVG.
 >
-> ![System Architecture](docs/diagrams/system-architecture.png)
+> ![System Architecture](images/system-architecture.png)
 
 <details>
 <summary><b>Mermaid source (click to expand)</b></summary>
@@ -339,7 +339,7 @@ lexguard/
 >
 > Generate this ER diagram using [**Eraser.io**](https://eraser.io) (best for clean technical diagrams — paste the schema description and let its AI generate the ER diagram) or [**dbdiagram.io**](https://dbdiagram.io) (free, paste DBML syntax). For a quick AI-generated option, use [**ChatGPT**](https://chatgpt.com) or [**Claude**](https://claude.ai) with the prompt: *"Generate a clean ER diagram for these tables: users, documents, analyses, findings, simulations"* and export the artifact.
 >
-> ![Database ER Diagram](docs/diagrams/database-er.png)
+> ![Database ER Diagram](images/supabase-schema-mtytjemmtvaxpevgjtha.png)
 
 <details>
 <summary><b>DBML schema for dbdiagram.io (click to expand)</b></summary>
@@ -499,28 +499,37 @@ npm i -g vercel && vercel --prod
 
 ## Design System
 
-LexGuard uses a **Retro Neo-Brutalist** visual language:
+LexGuard speaks one opinionated visual language — **Retro Neo-Brutalism** — applied consistently across every screen, badge, and report. The intent is a tactile, high-contrast interface where structure is always visible and nothing hides behind soft gradients or blur.
 
-- **Borders:** Hard 2-3px solid black borders, no border-radius
-- **Shadows:** Offset box shadows (`4px 4px 0px #1a1a1a`)
-- **Typography:** Bold uppercase headings, monospace accents
-- **Color Palette:**
+**Core principles**
+
+- **Borders** — Hard `2px` solid ink borders on every container; zero border-radius (sharp corners only)
+- **Shadows** — Offset hard drop shadows on a `4px → 5px → 6px` scale (e.g. `5px 5px 0px 0px #1a1a1a`), never blurred
+- **Typography** — `Space Grotesk` (bold, uppercase) for headings, `Space Mono` for body copy and accents
+- **Motion** — Interactive elements translate along the shadow axis for a physical press-down feel, rather than fading
+- **Dark mode** — A full design-token swap: ink canvas, bright-chalk borders, and neon-shifted accent colors
+
+**Color palette**
 
 | Swatch | Color | Hex | Usage |
 |---|---|---|---|
-| ![#f5f4f0](https://via.placeholder.com/12/f5f4f0/f5f4f0.png) | Sand | `#f5f4f0` | Page backgrounds |
-| ![#1a1a1a](https://via.placeholder.com/12/1a1a1a/1a1a1a.png) | Ink | `#1a1a1a` | Text, borders, shadows |
-| ![#d2c4fb](https://via.placeholder.com/12/d2c4fb/d2c4fb.png) | Lilac | `#d2c4fb` | Active states, primary accent |
-| ![#ffe082](https://via.placeholder.com/12/ffe082/ffe082.png) | Yellow | `#ffe082` | Pro tier, highlights, warnings |
-| ![#ff8a80](https://via.placeholder.com/12/ff8a80/ff8a80.png) | Coral | `#ff8a80` | Danger, critical severity |
-| ![#a7ffeb](https://via.placeholder.com/12/a7ffeb/a7ffeb.png) | Mint | `#a7ffeb` | Success, safe severity |
-
-> **Design System in Action**
->
-> ![Design System](docs/screenshots/design-system.png)
+| ![Sand](https://singlecolorimage.com/get/f5f4f0/24x24) | Sand | `#f5f4f0` | Page backgrounds |
+| ![Ink](https://singlecolorimage.com/get/1a1a1a/24x24) | Ink | `#1a1a1a` | Text, borders, shadows |
+| ![Lilac](https://singlecolorimage.com/get/d2c4fb/24x24) | Lilac | `#d2c4fb` | Active states, primary accent |
+| ![Yellow](https://singlecolorimage.com/get/ffe082/24x24) | Yellow | `#ffe082` | Pro tier, highlights, warnings |
+| ![Coral](https://singlecolorimage.com/get/ff8a80/24x24) | Coral | `#ff8a80` | Danger, critical severity |
+| ![Mint](https://singlecolorimage.com/get/a7ffeb/24x24) | Mint | `#a7ffeb` | Success, safe severity |
 
 ---
 
 ## License
 
-This project is proprietary. All rights reserved.
+Released under the **MIT License** — see the [LICENSE](LICENSE) file for the full text.
+
+```
+MIT License
+
+Copyright (c) 2026 Sumedh-6504
+```
+
+You are free to use, copy, modify, merge, publish, distribute, sublicense, and sell copies of the software, provided the copyright notice and permission notice are included in all copies or substantial portions.
