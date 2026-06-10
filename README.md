@@ -337,83 +337,134 @@ lexguard/
 
 > **Entity-Relationship Diagram**
 >
-> Generate this ER diagram using [**Eraser.io**](https://eraser.io) (best for clean technical diagrams — paste the schema description and let its AI generate the ER diagram) or [**dbdiagram.io**](https://dbdiagram.io) (free, paste DBML syntax). For a quick AI-generated option, use [**ChatGPT**](https://chatgpt.com) or [**Claude**](https://claude.ai) with the prompt: *"Generate a clean ER diagram for these tables: users, documents, analyses, findings, simulations"* and export the artifact.
->
 > ![Database ER Diagram](images/supabase-schema-mtytjemmtvaxpevgjtha.png)
 
-<details>
-<summary><b>DBML schema for dbdiagram.io (click to expand)</b></summary>
+## Table `organizations`
 
-```dbml
-Table users {
-  id uuid [pk]
-  email text [unique, not null]
-  name text
-  avatar_url text
-  auth_provider text [note: 'google | github | credentials']
-  plan text [default: 'free', note: 'free | pro']
-  password_hash text
-  created_at timestamptz [default: `now()`]
-}
+### Columns
 
-Table documents {
-  id uuid [pk, default: `gen_random_uuid()`]
-  user_id uuid [ref: > users.id]
-  file_name text
-  detected_type text
-  contract_text text
-  char_count int
-  created_at timestamptz [default: `now()`]
-}
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `name` | `text` |  |
+| `domain` | `text` |  Nullable Unique |
+| `plan` | `text` |  |
+| `settings` | `jsonb` |  Nullable |
+| `created_at` | `timestamptz` |  |
+| `updated_at` | `timestamptz` |  |
 
-Table analyses {
-  id uuid [pk, default: `gen_random_uuid()`]
-  document_id uuid [ref: > documents.id]
-  user_id uuid [ref: > users.id]
-  risk_score int
-  risk_level text [note: 'SAFE | LOW | MEDIUM | HIGH | CRITICAL']
-  judge_confidence float
-  contract_summary text
-  total_findings int
-  critical_count int
-  high_count int
-  medium_count int
-  low_count int
-  false_positives_removed int
-  created_at timestamptz [default: `now()`]
-}
+## Table `users`
 
-Table findings {
-  id uuid [pk, default: `gen_random_uuid()`]
-  analysis_id uuid [ref: > analyses.id]
-  finding_ref text
-  title text
-  category text
-  severity text [note: 'CRITICAL | HIGH | MEDIUM | LOW']
-  clause_text text
-  clause_location text
-  detective_finding text
-  judge_verdict text
-  plain_english_impact text
-  recommendation text [note: 'ACCEPT | NEGOTIATE | REJECT']
-  negotiation_tip text
-  verified boolean
-  false_positive boolean
-  sort_order int
-}
+### Columns
 
-Table simulations {
-  id uuid [pk, default: `gen_random_uuid()`]
-  analysis_id uuid [ref: > analyses.id]
-  worst_case_story text
-  financial_risk text
-  created_at timestamptz [default: `now()`]
-}
-```
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `email` | `text` |  Unique |
+| `name` | `text` |  Nullable |
+| `avatar_url` | `text` |  Nullable |
+| `auth_provider` | `text` |  |
+| `plan` | `text` |  |
+| `org_id` | `uuid` |  Nullable |
+| `analyses_this_month` | `int4` |  |
+| `created_at` | `timestamptz` |  |
+| `updated_at` | `timestamptz` |  |
+| `password_hash` | `text` |  Nullable |
+| `ls_customer_id` | `text` |  Nullable |
 
-</details>
+## Table `documents`
 
----
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `user_id` | `uuid` |  |
+| `file_name` | `text` |  |
+| `file_type` | `text` |  Nullable |
+| `detected_type` | `text` |  Nullable |
+| `contract_text` | `text` |  Nullable |
+| `char_count` | `int4` |  |
+| `storage_path` | `text` |  Nullable |
+| `created_at` | `timestamptz` |  |
+
+## Table `analyses`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `document_id` | `uuid` |  |
+| `user_id` | `uuid` |  |
+| `risk_score` | `int4` |  |
+| `risk_level` | `text` |  |
+| `judge_confidence` | `float8` |  Nullable |
+| `contract_summary` | `text` |  Nullable |
+| `total_findings` | `int4` |  |
+| `critical_count` | `int4` |  |
+| `high_count` | `int4` |  |
+| `medium_count` | `int4` |  |
+| `low_count` | `int4` |  |
+| `false_positives_removed` | `int4` |  |
+| `analyzed_at` | `timestamptz` |  |
+
+## Table `findings`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `analysis_id` | `uuid` |  |
+| `finding_ref` | `text` |  |
+| `title` | `text` |  |
+| `category` | `text` |  |
+| `severity` | `text` |  |
+| `clause_text` | `text` |  Nullable |
+| `clause_location` | `text` |  Nullable |
+| `detective_finding` | `text` |  Nullable |
+| `judge_verdict` | `text` |  Nullable |
+| `plain_english_impact` | `text` |  Nullable |
+| `recommendation` | `text` |  Nullable |
+| `negotiation_tip` | `text` |  Nullable |
+| `verified` | `bool` |  |
+| `false_positive` | `bool` |  |
+| `sort_order` | `int4` |  |
+
+## Table `simulations`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `analysis_id` | `uuid` |  |
+| `worst_case_story` | `text` |  Nullable |
+| `financial_risk` | `text` |  Nullable |
+| `time_risk` | `text` |  Nullable |
+| `probability` | `text` |  Nullable |
+| `scenarios` | `jsonb` |  Nullable |
+| `created_at` | `timestamptz` |  |
+
+## Table `policies`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `uuid` | Primary |
+| `org_id` | `uuid` |  |
+| `name` | `text` |  |
+| `allowed_doc_types` | `_text` |  Nullable |
+| `max_risk_threshold` | `int4` |  Nullable |
+| `auto_reject_critical` | `bool` |  |
+| `require_simulation` | `bool` |  |
+| `monthly_analysis_limit` | `int4` |  Nullable |
+| `is_active` | `bool` |  |
+| `created_at` | `timestamptz` |  |
+| `updated_at` | `timestamptz` |  |
+
 
 ## API Reference
 
