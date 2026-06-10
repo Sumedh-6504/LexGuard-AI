@@ -55,6 +55,8 @@ const PRO_FEATURES = [
 export default function PlansPage() {
   const { data: session } = useSession();
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
+  const [upgrading, setUpgrading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchPlan() {
@@ -68,6 +70,25 @@ export default function PlansPage() {
     }
     if (session?.user) fetchPlan();
   }, [session]);
+
+  async function handleUpgrade() {
+    setError(null);
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/billing/checkout", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setError(data.error || "Could not start checkout. Please try again.");
+        setUpgrading(false);
+        return;
+      }
+      // Redirect to Lemon Squeezy's hosted checkout page.
+      window.location.href = data.url;
+    } catch {
+      setError("Could not start checkout. Please try again.");
+      setUpgrading(false);
+    }
+  }
 
   const currentPlan = userPlan?.plan || "free";
 
@@ -183,11 +204,22 @@ export default function PlansPage() {
                 Current Plan
               </div>
             ) : (
-              <button className="w-full py-3 bg-[#ffe082] border-2 border-[#1a1a1a] text-xs font-black tracking-wider uppercase neo-shadow-sm hover:translate-y-[-1px] active:translate-y-[1px] transition-all flex items-center justify-center gap-2">
-                <Zap className="w-4 h-4" />
-                Upgrade to Pro
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <>
+                <button
+                  onClick={handleUpgrade}
+                  disabled={upgrading}
+                  className="w-full py-3 bg-[#ffe082] border-2 border-[#1a1a1a] text-xs font-black tracking-wider uppercase neo-shadow-sm hover:translate-y-[-1px] active:translate-y-[1px] transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0"
+                >
+                  <Zap className="w-4 h-4" />
+                  {upgrading ? "Redirecting…" : "Upgrade to Pro"}
+                  {!upgrading && <ArrowRight className="w-4 h-4" />}
+                </button>
+                {error && (
+                  <p className="text-[10px] font-mono text-[#ff2d55] mt-2 uppercase tracking-wider text-center">
+                    {error}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>

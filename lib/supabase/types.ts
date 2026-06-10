@@ -21,6 +21,7 @@ export interface UserRow {
   plan: string;
   org_id: string | null;
   analyses_this_month: number;
+  ls_customer_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -104,6 +105,7 @@ export type Database = {
           org_id: string | null;
           analyses_this_month: number;
           password_hash: string | null;
+          ls_customer_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -117,6 +119,7 @@ export type Database = {
           org_id?: string | null;
           analyses_this_month?: number;
           password_hash?: string | null;
+          ls_customer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -130,6 +133,7 @@ export type Database = {
           org_id?: string | null;
           analyses_this_month?: number;
           password_hash?: string | null;
+          ls_customer_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

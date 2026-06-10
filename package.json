@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.41.2",
+    "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
     "@supabase/supabase-js": "^2.106.1",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^1.16.0",
