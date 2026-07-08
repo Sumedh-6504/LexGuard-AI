@@ -94,8 +94,6 @@ LexGuard is an AI-powered contract analysis platform that uses three adversarial
 
 > **System Design Diagram**
 >
-> Generate this diagram using [**Eraser.io**](https://eraser.io) (recommended — supports Mermaid, has AI diagram generation) or paste the Mermaid code below into [mermaid.live](https://mermaid.live) to export as PNG/SVG.
->
 > ![System Architecture](images/system-architecture.png)
 
 <details>
